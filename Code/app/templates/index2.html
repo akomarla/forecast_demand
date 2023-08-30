@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 18 08:07:19 2023
+
+@author: akomarla
+"""
+
+<!DOCTYPE html>
+<html> 
+<head> 
+    <title>Upload & Read Demand Data</title> 
+</head> 
+<body> 
+    <form method = "POST" enctype="multipart/form-data" action = "/">   
+        <input type="file" name="file" accept=".xlsx">
+        <input type = "submit" value="Upload"> 
+    </form>
+    <p style="color:green;"> File uploaded successfully</p>
+  <form action="/input" target="_blank">
+        <input type="submit" value="Enter Parameters"/>
+    </form>
+</body> 
+</html>

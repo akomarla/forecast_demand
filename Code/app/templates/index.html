@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug 17 15:14:25 2023
+
+@author: akomarla
+"""
+
+
+<!DOCTYPE html>
+<html> 
+<head> 
+    <title>Uploading & Reading CSV file</title> 
+</head> 
+<body> 
+
+    <form method = "POST" enctype="multipart/form-data" action = "/">   
+        <input type="file" name="file" accept=".xlsx">
+        <input type = "submit" value="Upload"> 
+    </form>
+    <p style="color:blue;">Choose csv file to upload</p>
+
+    <form action="/input" target="_blank">
+        <input type="submit" value="Enter Parameters"/>
+    </form>
+
+</body> 
+</html>
