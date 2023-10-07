@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 
 # Upload folder
-UPLOAD_FOLDER = "C:/Users/akomarla/OneDrive - NANDPS/Desktop/Repos/gbl_ops_data_analytics.forecasting.automation.demand_dissag/Data/Results"
+UPLOAD_FOLDER = "C:/Users/akomarla/OneDrive - NANDPS/Desktop/Repos/gbl_ops_data_analytics.forecasting.automation.demand_dissag/data/results"
 app.config['UPLOAD_FOLDER'] =  UPLOAD_FOLDER
  
 app.secret_key = 'This is your secret key to utilize session in Flask'
@@ -65,7 +65,9 @@ def showResults():
     # Read Excel
     uploaded_df = pd.read_excel(data_file_path)
     # Make selections 
+    #sel_df = uploaded_df
     sel_df = uploaded_df[(uploaded_df['Family'].str.lower() == program_family.lower()) & (uploaded_df['CUSTOMER_NAME'].str.lower() == customer.lower()) & (uploaded_df['Quarter'].str.lower() == quarter.lower())]
+
     return render_template('show_results.html', data_var = sel_df.head().to_html())
  
  
