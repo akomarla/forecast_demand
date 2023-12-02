@@ -16,32 +16,32 @@ import matplotlib.pyplot as plt
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing, Holt
 import sklearn.metrics as metrics
 from sklearn.model_selection import train_test_split
-from base import *
+from ExpSmoothing import *
 
 def extr_sql_data(command, server_name, database_name, csv_output = None, write_file_path = None, excel_output = None, table_name = None):
     """ 
     
     Parameters
     ----------
-    command : 
-        str of SQL statement (query, stored procedure, etc) to execute, ex: 'EXEC [demand].[dbo].[sp_Demand_Comp];'
-    server_name : 
-        str of server name, ex: 'GOAPPS-SQL.CORP.NANDPS.COM,1433'
-    database_name : 
-        str of database name, ex: 'demand'
-    table_name : 
-        str of table name inside database, ex: 'demand_pegatron'
-    csv_output : 
-        boolean to or to not return .csv file, ex: True, False, None
-    excel_output : 
-        boolean to or to not return .xlsx file, ex: True, False, None
-    write_file_path : 
-        str of path to store output
+    command : str
+        SQL statement (query, stored procedure, etc) to execute, ex: 'EXEC [demand].[dbo].[sp_Demand_Comp];'
+    server_name : str
+        server name, ex: 'GOAPPS-SQL.CORP.NANDPS.COM,1433'
+    database_name : str
+        database name, ex: 'demand'
+    table_name : str
+        table name inside database, ex: 'demand_pegatron'
+    csv_output : boolean
+        specify whether to return or not return a .csv file output, ex: True, False, None
+    excel_output : boolean
+        specify whether to return or not return a .xlsx file output, ex: True, False, None
+    write_file_path : str
+        path to store output
     
     Returns 
     -------
-    df : pandas dataframe, excel output
-        dataframe and file with the extracted data from the SQL databse
+    df : pandas dataframe
+        dataframe with the extracted data from the SQL database
         
     """
     try:
@@ -88,7 +88,7 @@ def clean_density_data(den):
     return den
 
 
-def gen_quart_hist_data(df, sel_vars, quart_ft, var_ft, level_ft, fill_zero = False, quart_horizon = 6):
+def gen_quart_hist_data(df, sel_vars, quart_ft, var_ft, level_ft, level_count = 6, fill_zero = False, quart_horizon = 6):
     """
 
     Parameters
@@ -100,13 +100,18 @@ def gen_quart_hist_data(df, sel_vars, quart_ft, var_ft, level_ft, fill_zero = Fa
     quart_ft : list of strs
         list of quarter and year values to be forecasted, ex: ['2023Q2, '2023Q1']
     quart_horizon : int
-        number of quarters of historicals to be generated, default is 6
+        number of quarters of historicals to be generated
+        default value is 6
     var_ft : str
         name of variable to be forecasted, ex: 'cMrk_MGB'
     level_ft : str
-        drill-down variable level (or SKU) to forecast, ex: 'Family', 'Basename'
+        drill-down variable level (or SKU) to forecast, ex: 'Form Factor', 'Basename'
+    level_count : str
+        number of values at least one SKU must have in order for its program family to be included in the output, ex: 6
+        default value is 6
     fill_zero : boolean, optional
         specify whether to fill missing values in the output with 0s, ex: True, False or None
+        default value is False
         
     Returns
     -------
@@ -115,6 +120,7 @@ def gen_quart_hist_data(df, sel_vars, quart_ft, var_ft, level_ft, fill_zero = Fa
         (columns are quarters and row values correspond to the level and forecast variables)
 
     """
+    # Generate historical data for a single target quarter
     def single_horizon(ft):
         # Intializing the quarter range for generating historical data
         quart_range = TimeInstance(ft, 'year quarter').gen_quart_range(how = 'backward', num = quart_horizon)
@@ -128,40 +134,66 @@ def gen_quart_hist_data(df, sel_vars, quart_ft, var_ft, level_ft, fill_zero = Fa
         sh = pd.DataFrame()
         # Identifying groups with enough historical data for the quarter we want to forecast
         for _, g in gps:
-            check = True
-            for q in quart_range:
-                # Check if program family has all of the quarters in the horizon (any SKU level)
-                if q not in g['Quarter'].unique():
-                    check = False
-            # Only generate historical data if the family has all quarters in the horizon 
-            if check:
-                # Calculate the percentage and total per unit at a group level
-                g = sum_perc_calc(df = g, 
-                                  sel_vars = None, 
-                                  sum_var = [var_ft], 
-                                  label = ['Quarter'], 
-                                  group_var = ['CUSTOMER_NAME', 'Interface', 'MLC/SLC', 'Family', 'Quarter'])
-                # Get all quarters for a basename or family
-                l_gps = g.groupby(by = level_ft, dropna = False)
-                for _, lg in l_gps:
-                    # Get the numeric columns to be summed
-                    cols = lg._get_numeric_data().columns.tolist()+['Quarter']
-                    # Extract quarters in the range, perform summing and transpose so that time-series is in a row
-                    # Sum the quarter total, % and other numerical columns by quarter
-                    ext = lg[lg['Quarter'].isin(quart_range)][cols].groupby('Quarter').sum().transpose()
-                    # Get the non-numeric categorical columns
-                    cols = [c for c in lg.columns if c not in ['Quarter', var_ft]+list(ext.index)]
-                    # Update results with the non-numeric values
-                    ext[cols] = [lg[c].unique()[0] for c in cols]
-                    sh = pd.concat([sh, ext])         
+            # Calculate the percentage and total per SKU unit at a group level
+            g = sum_perc_calc(df = g, 
+                              sel_vars = None, 
+                              sum_var = [var_ft], 
+                              label = ['Quarter'], 
+                              group_var = ['CUSTOMER_NAME', 'Interface', 'MLC/SLC', 'Family', 'Quarter'])
+            # Get all quarters for a basename or form factor (SKU level)
+            l_gps = g.groupby(by = level_ft, dropna = False)
+            for _, lg in l_gps:
+                # Get the numeric columns to be summed
+                cols = lg._get_numeric_data().columns.tolist()+['Quarter']
+                # Extract quarters in the range, perform summing and transpose so that time-series is in a row
+                # Sum the quarter total, % and other numerical columns by quarter
+                ext = lg[lg['Quarter'].isin(quart_range)][cols].groupby('Quarter').sum().transpose()
+                # Get the non-numeric categorical columns
+                cols = [c for c in lg.columns if c not in ['Quarter', var_ft]+list(ext.index)]
+                # Update results with the non-numeric values
+                ext[cols] = [lg[c].unique()[0] for c in cols]
+                sh = pd.concat([sh, ext])         
         
-        # Fill all missing values with 0s -> for all quarters with no data
-        if fill_zero:
-            sh = sh.fillna(0)
+        # If a minimum time-series length value is passed
+        if level_count:
+            # Initialize a dataframe with the historical data
+            sh_lc = pd.DataFrame()
+            # Group at a family level
+            gps = sh.groupby(by = ['CUSTOMER_NAME', 'Interface', 'MLC/SLC', 'Family'], dropna = False)
+            for _, g in gps:
+                try:
+                    # Loop through each time-series in the family for the quarter % total
+                    for i, row in g.loc['Quarter % total'].iterrows():
+                        count_met = False
+                        # If there are enough values in the time-series (excluding the last quarter in the range which is the target quarter for forecast)
+                        if (~row[quart_range[:-1]].isnull()).sum() >= level_count:
+                            count_met = True
+                            break
+                except:
+                    # If it is impossible to loop through the rows then store the family data anyway
+                    count_met = True
+                    continue
+                
+                # If the minimum count has been met for at least one time-series in the group
+                if count_met:
+                    # Append the group to the output
+                    sh_lc = pd.concat([sh_lc, g])
+            
+            # Fill all missing values with 0s -> for all quarters with no data
+            if fill_zero:
+                sh_lc = sh_lc.fillna(0)
+            # Return the subsetted dataframe
+            return sh_lc
         
-        return sh 
-    
-    # Generate historical data for multiple target quarters and concatenate the data
+        # If no minimum time-series length value is passed
+        else:
+            # Fill all missing values with 0s -> for all quarters with no data
+            if fill_zero:
+                sh = sh.fillna(0)
+            # Return the dataframe without any subsetting based on the count of time-series values available
+            return sh
+        
+    # Generate historical data for multiple target quarters and vertically concatenate the results
     def mult_horizon(quart_ft):
         mh = pd.DataFrame()
         # Combine historical data for each target quarter at a time
@@ -204,7 +236,7 @@ def sum_perc_calc(df, sel_vars, sum_var, label, group_var):
             gps = df.groupby(by = group_var, dropna = False)
         
         # Calculate the total variable value and percentage per unit
-        for _, g in tqdm(gps):
+        for _, g in gps:
             g[l+' total'] = g[sv].sum()
             g[l+' % total'] = (g[sv]/g[sv].sum())*100
             df_mod = pd.concat([df_mod, g])
@@ -213,7 +245,6 @@ def sum_perc_calc(df, sel_vars, sum_var, label, group_var):
     
     def mult_var(df, sum_var, label):
         # Iterate over all variables to be summed
-        #df_mod = pd.DataFrame()
         for sv, l in zip(sum_var, label):
             df = single_var(df, sv, l)
     
