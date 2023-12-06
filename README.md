@@ -47,8 +47,6 @@ Note: The code in this repository only addresses case I. The solution for case I
 
 Simple Exponential Smoothing can be interpreted as a weighted sum of the time-series values, wherein the weights are exponentially increasing (greater importance to future values in the time-series). The "alpha" value or the smoothing parameter lies between 0 and 1: the greater the value of alpha, the greater is the exponentially increasing nature of the weights. The formula is given below and as you can see it is recursive. The "alpha" value determines how much of the time-series history is used to forecast the next value. 
 
-<img src = "https://github.com/solidigm-innersource/gbl_ops_data_analytics.forecasting.automation.demand_dissag/assets/124313756/6be1a9a0-1f48-4a85-aa91-e9a55e752547" width = "80%" height = "60%">
-
 Learn more here: https://btsa.medium.com/introduction-to-exponential-smoothing-9c2d5909a714
 
 ### I. Training
@@ -63,8 +61,6 @@ The obvious follow-up question upon learning the formula for the exponential smo
 | Mean Absolute Percentage Error (MAPE) |  ```mean absolute percentage error```  | <img src = "https://github.com/akomarla/ExpSmoothing/assets/124313756/4825f7e2-f0c6-4396-b27f-2333542f2d84" width = "35%" height = "35%"> <tr></tr> |
 
 Where n represents the number of time-series in the data set. 
-
-<img src = "https://github.com/akomarla/ExpSmoothing/assets/124313756/f5b6b8c5-2d78-4313-be97-f4dd35b8f7ea" width = "6%" height = "6%"> is the difference between the true and forecasted future values of the time-series i in n.
 
 Learn more about the different cost functions here: https://www.analyticsvidhya.com/blog/2021/10/evaluation-metric-for-regression-models/. 
 
@@ -84,7 +80,7 @@ Use gradient descent to learn the optimal weights for a weighted average of a sh
 
 Learn areas of a time-series that are the best predictors of future values in the time-series. Rank the values in the time-series based on which values are nearest to the future value. The order [q_6, q_4, q_5, q_3, q_2, q_1] of importance can be represented as a vector [6, 4, 5, 3, 2, 1]. Use the cosine-similarity metric and unsupervised-learning to find clusters of weight vectors
 
-<img src = "https://github.com/solidigm-innersource/gbl_ops_data_analytics.forecasting.automation.demand_dissag/assets/124313756/8ae8644e-be87-41c6-8acc-8087414e4a59"  width = "50%" height = "50%">
+<img src = "https://github.com/akomarla/automate_drive_demand_dissag/assets/124313756/f503a413-6a4f-4bc6-a736-d4f1f382385b"  width = "50%" height = "50%">
 
 # Implementation 
 
