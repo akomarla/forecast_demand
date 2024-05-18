@@ -19,9 +19,9 @@
 Automating the long-term demand forecast at a SKU/basename level using historical trends in customer behaviors. Solution provides three methods: exponential smoothing, gradient-descent based regressions and vector similarity to predict the percentage of demand on each SKU (per program family and customer) for a future quarter. Currently, the primary method is exponential smoothing. The other two methods are in an exploratory phase.  
 
 # Setup
-The goal is utilize this forecast tool for cq+2 onwards, where cq is the current quarter. The forecast for cq and cq+1 is to be owned by a separate team (Eric Waterman). A demand analyst would provide the total demand for for a program family in cq+2 and the tool would disaggregate this demand across all SKUs in the program family using the primary forecasting method described below.
+The goal is utilize this forecast tool for cq+2 onwards, where cq is the current quarter. The forecast for cq and cq+1 is to computed differently. A demand analyst would provide the total demand for for a program family in cq+2 and the tool would disaggregate this demand across all SKUs in the program family using the forecasting methods described below.
 
-The solution is split into two cases based on the availablility of historical data.
+There are two cases based on the availablility of historical data.
 
 Quarter to predict = q<br>
 Minimum number of quarters needed for prediction (without legacy relationships) = n (6 is default)<br>
@@ -126,12 +126,12 @@ For the config.py file:
 | `str` | `q` | Target quarter to forecast | '2023Q3' |
 | `int` | `ft_range` | Number of quarters to be used in the forecast computation | 6 |
 | `str` | `train_error_type` | Error metric to use to train the model  | 'mean absolute percentage error' |
-| `str` | `raw_demand_command` | Command to read raw demand data from the DMT database | 'EXEC [demand].[dbo].[sp_Demand_Comp];' |
-| `str` | `products_command` | Command to read the products data from the DMT database  | "SELECT * FROM [demand].[dbo].[T_Products]" |
-| `str` | `server_name` | Server for DMT data | 'GOAPPS-SQL.CORP.NANDPS.COM,1433' |
+| `str` | `raw_demand_command` | Command to read raw demand data from the DMT database | null |
+| `str` | `products_command` | Command to read the products data from the DMT database  | null |
+| `str` | `server_name` | Server for DMT data | null |
 | `str` | `database_name` | Database for DMT data  | 'demand' |
 | `boolean` | `excel_output` | Specify whether to write the output to an Excel file or not  | True |
-| `str` | `write_file_path` | Path where forecast outputs are written | None |
+| `str` | `write_file_path` | Path where forecast outputs are written | null |
 
 For the ExpSmoothing model and specifically the train() function:
 
