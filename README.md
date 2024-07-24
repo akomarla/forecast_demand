@@ -7,8 +7,8 @@
     + [I. Training](#i-training)
     + [II. Testing](#ii-testing)
     + [III. More information](#iii-more-information)
-  * [2. Regression (Exploratory)](#2-regression--exploratory-)
-  * [3. Vector Similarity (Exploratory)](#3-vector-similarity--exploratory-)
+  * [2. Regression](#2-regression--exploratory-)
+  * [3. Vector Similarity](#3-vector-similarity--exploratory-)
 - [Implementation](#implementation)
   * [1. Steps](#steps)
   * [2. Repo structure](#repo-structure)
@@ -26,7 +26,7 @@ There are two cases based on the availablility of historical data.
 Quarter to predict = q<br>
 Minimum number of quarters needed for prediction (without legacy relationships) = n (6 is default)<br>
 Number of quarters of available data = a<br>
-A group is defined by a unique program family, interface, MLC/SLC and customer. Take group A for example, which comprises ADPRR, SATA, TLC drives for Amazon.<br> 
+A group is defined by a unique program family, interface, MLC/SLC and customer. Take group A for example, which comprises SATA TLC drives for Amazon.<br> 
   
 For group A,<br>
 
@@ -45,13 +45,13 @@ Note: The code in this repository only addresses case I. The solution for case I
 
 ## 1. Exponential Smoothing 
 
-Simple Exponential Smoothing can be interpreted as a weighted sum of the time-series values, wherein the weights are exponentially increasing (greater importance to future values in the time-series). The "alpha" value or the smoothing parameter lies between 0 and 1: the greater the value of alpha, the greater is the exponentially increasing nature of the weights. The formula is given below and as you can see it is recursive. The "alpha" value determines how much of the time-series history is used to forecast the next value. 
+Simple Exponential Smoothing is weighted sum of the time-series values wherein the weights are exponentially increasing (greater importance to future values in the time-series). The "alpha" value or the smoothing parameter lies between 0 and 1. The "alpha" value determines how much of the time-series history is used to forecast future values.
 
 Learn more here: https://btsa.medium.com/introduction-to-exponential-smoothing-9c2d5909a714
 
 ### I. Training
 
-The obvious follow-up question upon learning the formula for the exponential smoothing method is how to determine the best alpha value. The ExpSmoothing package: https://pypi.org/project/ExpSmoothing/ is used to train a exponential smoothing model using the following error metrics: 
+The ExpSmoothing package: https://pypi.org/project/ExpSmoothing/ is used to train a exponential smoothing model using the following error metrics: 
 
 | Error (Cost Function) | Parameter | Formula |
 | ------------ | ------------------- | --------- |
@@ -72,11 +72,11 @@ The ExpSmoothing package: https://pypi.org/project/ExpSmoothing/ is used to test
 
 See https://pypi.org/project/ExpSmoothing/ for more documentation on the method and implementation.
 
-## 2. Regression (Exploratory) 
+## 2. Regression
 
 Use gradient descent to learn the optimal weights for a weighted average of a short-range time-series. The "optimal" weight vector will be one that minimizes the error between the forecasted values of the time-series and the true values. 
 
-## 3. Vector Similarity (Exploratory) 
+## 3. Vector Similarity 
 
 Learn areas of a time-series that are the best predictors of future values in the time-series. Rank the values in the time-series based on which values are nearest to the future value. The order [q_6, q_4, q_5, q_3, q_2, q_1] of importance can be represented as a vector [6, 4, 5, 3, 2, 1]. Use the cosine-similarity metric and unsupervised-learning to find clusters of weight vectors
 
@@ -88,14 +88,13 @@ The implementation is focused on the exponential smoothing method. For each SKU,
 
 ## 1. Steps 
 
-1. Read the DMT data and apply transformations to generate a set time-series that each represent one SKU
+1. Read the data and apply transformations to generate time-series for each SKU's demand
 2. Replace all negative demand values with 0 (this modification is not an optional parameter)
 3. Set a target quarter to forecast, ex: 'Q1 2024'
 4. Set a number for the historical quarters to be used in the calculation, ex: 6
 5. Set a error type to train the model, ex: 'mean absolute percentage error'
 6. Train the exponential smoothing model. By default, the model trains on (tq - 1), where tq is the target quarter
 7. Execute the model on a new set of training data
-8. Write the results to an Excel file
 
 ## 2. Repo structure
 
